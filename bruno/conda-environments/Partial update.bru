@@ -1,0 +1,35 @@
+meta {
+  name: Partial update
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/conda-environments/{{condaEnvUUID}}/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ourJWT}}
+}
+
+body:json {
+  {
+    "title": "test-conda-env-1-updated",
+    "description": "Updated description for test conda environment"
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  test("JSON response is valid", function () {
+      var jsonData = res.getBody();
+      expect(jsonData).to.deep.include({
+        "title": "test-conda-env-1-updated",
+        "description": "Updated description for test conda environment"
+      });
+  });
+}

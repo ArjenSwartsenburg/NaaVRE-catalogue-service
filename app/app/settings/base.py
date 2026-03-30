@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     'django_filters',
     'file_assets',
     'base_assets',
+    'conda_environments',
     'notebook_files',
     'oidc_jwt_auth',
     'paas_configuration',

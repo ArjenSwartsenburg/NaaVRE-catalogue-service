@@ -1,0 +1,71 @@
+meta {
+  name: Create conda environment
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/conda-environments/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ourJWT}}
+}
+
+body:json {
+  {
+    "virtual_lab": "test-virtual-lab-1",
+    "title": "test-conda-env-1",
+    "description": "Test conda environment with numpy and pandas",
+    "environment_name": "test-analysis-env",
+    "python_version": "3.11.4",
+    "package_count": 42,
+    "created_date": "2026-03-30T10:30:00Z",
+    "files": [
+      {
+        "file_type": "environment_tar",
+        "key": "{{envTarKey}}",
+        "order": 0
+      },
+      {
+        "file_type": "requirements_list",
+        "key": "{{requirementsKey}}",
+        "order": 1
+      }
+    ]
+  }
+}
+
+script:post-response {
+  try {
+    const uuid = res.getBody().url.replace(/.*\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/$/, "$1");
+    bru.setVar('condaEnvUUID', uuid);
+    console.log('Created conda environment with UUID:', uuid);
+  }
+  catch (e) {
+    console.log('Error extracting UUID:', e);
+  }
+}
+
+tests {
+  test("Status code is 201", function () {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("JSON response is valid", function () {
+    var jsonData = res.getBody();
+    expect(jsonData).to.deep.include({
+      "title": "test-conda-env-1",
+      "owner": "test-user-2",
+      "virtual_lab": "test-virtual-lab-1",
+      "environment_name": "test-analysis-env",
+      "python_version": "3.11.4",
+      "package_count": 42
+    });
+    expect(jsonData.url).is.not.null;
+    expect(jsonData.created).is.not.null;
+    expect(jsonData.modified).is.not.null;
+    expect(jsonData.files).to.have.lengthOf(2);
+  });
+}

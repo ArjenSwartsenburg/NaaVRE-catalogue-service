@@ -1,0 +1,48 @@
+meta {
+  name: presign-env-tar
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/conda-environments/presign/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ourJWT}}
+}
+
+body:json {
+  {
+    "filename": "test-environment.tar.gz",
+    "content_type": "application/gzip"
+  }
+}
+
+script:post-response {
+  try {
+    const responseBody = res.getBody();
+    bru.setVar('envTarKey', responseBody.key);
+    bru.setVar('envTarUrl', responseBody.url);
+    console.log('Environment TAR key:', responseBody.key);
+    console.log('Environment TAR URL:', responseBody.url);
+  }
+  catch (e) {
+    console.log('Error extracting variables:', e);
+  }
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  test("Response has key and url", function () {
+      var jsonData = res.getBody();
+      expect(jsonData).to.have.property('key');
+      expect(jsonData).to.have.property('url');
+      expect(jsonData.key).is.not.null;
+      expect(jsonData.url).is.not.null;
+  });
+}

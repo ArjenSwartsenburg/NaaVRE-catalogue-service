@@ -1,0 +1,30 @@
+meta {
+  name: Retrieve
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/conda-environments/{{condaEnvUUID}}/
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{ourJWT}}
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  test("JSON response is valid", function () {
+      var jsonData = res.getBody();
+      expect(jsonData).to.have.property('title');
+      expect(jsonData).to.have.property('environment_name');
+      expect(jsonData).to.have.property('python_version');
+      expect(jsonData).to.have.property('package_count');
+      expect(jsonData).to.have.property('files');
+      expect(jsonData.files).to.be.an('array');
+  });
+}
