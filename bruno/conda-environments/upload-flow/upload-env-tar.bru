@@ -1,0 +1,26 @@
+meta {
+  name: upload-env-tar
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{envTarUrl}}
+  body: text
+  auth: none
+}
+
+body:text {
+  This is a mock environment tar file content for testing purposes.
+  In a real scenario, this would be a gzipped tar archive.
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: false
+}

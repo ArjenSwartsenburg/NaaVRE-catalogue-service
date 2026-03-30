@@ -1,0 +1,29 @@
+meta {
+  name: upload-requirements
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{requirementsUrl}}
+  body: text
+  auth: none
+}
+
+body:text {
+  numpy==1.24.3
+  pandas==2.0.3
+  matplotlib==3.7.1
+  scipy==1.11.1
+  scikit-learn==1.3.0
+}
+
+tests {
+  test("Status code is 200", function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+}
+
+settings {
+  encodeUrl: false
+}
