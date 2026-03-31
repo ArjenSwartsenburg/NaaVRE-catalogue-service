@@ -27,6 +27,11 @@ class CondaEnvironmentViewSet(BaseAssetViewSet):
         Returns:
             `key`: S3 object key (i.e. the path in the bucket)
             `url`: a presigned upload URL
+        Return example:
+            {
+                "key": "conda_environments/383fecda-bc11-418c-ae81-d277c1bfd0d9_environment.tar.gz",
+                "url": "http://localhost:9000/dev-bucket/conda_environments/..."
+            }
         """
         serializer = serializers.PresignRequestSerializer(data=request.data)
 
@@ -39,7 +44,7 @@ class CondaEnvironmentViewSet(BaseAssetViewSet):
         content_type = serializer.validated_data["content_type"]
 
         filename = filename.replace('/', '_')
-        filename = models.CondaEnvironmentFile.file.field.generate_filename(
+        filename = models.CondaEnvironment.environment_file.field.generate_filename(
             None,
             f"{uuid.uuid4()}_{filename}",
             )
@@ -54,5 +59,3 @@ class CondaEnvironmentViewSet(BaseAssetViewSet):
             "url": url,
         })
 
-    def perform_create(self, serializer):
-        super().perform_create(serializer)

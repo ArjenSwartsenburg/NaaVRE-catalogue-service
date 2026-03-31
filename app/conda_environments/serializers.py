@@ -12,35 +12,33 @@ def key_exists_in_s3(key):
             )
 
 
-def key_does_not_exist_in_db(key):
-    qs = models.CondaEnvironmentFile.objects.filter(file=key)
+def key_does_not_exist_in_db_environment(key):
+    qs = models.CondaEnvironment.objects.filter(environment_file=key)
     if qs.exists():
         raise serializers.ValidationError(
             'a record with this key already exists in the database'
             )
 
 
-class CondaEnvironmentFileSerializer(serializers.ModelSerializer):
-    key = serializers.CharField(
-        write_only=True,
-        validators=[key_exists_in_s3, key_does_not_exist_in_db],
-    )
-
-    class Meta:
-        model = models.CondaEnvironmentFile
-        fields = ['id', 'file_type', 'order', 'key', 'file']
-        read_only_fields = ['file', 'id']
-
-    def create(self, validated_data):
-        key = validated_data.pop('key')
-        file_obj = models.CondaEnvironmentFile(**validated_data)
-        file_obj.file.name = key
-        file_obj.save()
-        return file_obj
+def key_does_not_exist_in_db_dependency(key):
+    qs = models.CondaEnvironment.objects.filter(dependency_list=key)
+    if qs.exists():
+        raise serializers.ValidationError(
+            'a record with this key already exists in the database'
+            )
 
 
 class CondaEnvironmentSerializer(BaseAssetSerializer):
-    files = CondaEnvironmentFileSerializer(many=True, read_only=True)
+    environment_file_key = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[key_exists_in_s3, key_does_not_exist_in_db_environment],
+    )
+    dependency_list_key = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[key_exists_in_s3, key_does_not_exist_in_db_dependency],
+    )
 
     class Meta(BaseAssetSerializer.Meta):
         model = models.CondaEnvironment
@@ -59,10 +57,25 @@ class CondaEnvironmentSerializer(BaseAssetSerializer):
             'python_version',
             'package_count',
             'created_date',
-            'files',
+            'environment_file',
+            'dependency_list',
+            'environment_file_key',
+            'dependency_list_key',
         ]
+        read_only_fields = ['environment_file', 'dependency_list']
+
+    def create(self, validated_data):
+        environment_file_key = validated_data.pop('environment_file_key')
+        dependency_list_key = validated_data.pop('dependency_list_key')
+
+        conda_env = models.CondaEnvironment(**validated_data)
+        conda_env.environment_file.name = environment_file_key
+        conda_env.dependency_list.name = dependency_list_key
+        conda_env.save()
+        return conda_env
 
 
 class PresignRequestSerializer(serializers.Serializer):
     filename = serializers.CharField()
     content_type = serializers.RegexField(r'^\w+/[-+.\w]+$')
+
