@@ -85,9 +85,9 @@ Bruno stores variables during execution that are reused in subsequent requests:
 ### Create Environment (201 Created)
 ✓ HTTP 201 response
 ✓ Response includes all metadata fields
-✓ `files` array has exactly 2 entries (tar + requirements)
+✓ `environment_file` present (S3 path for tar)
+✓ `dependency_list` present (S3 path for requirements)
 ✓ `url` property extracted for UUID
-✓ File types are correctly assigned
 
 ### List Environment (200 OK)
 ✓ HTTP 200 response
@@ -96,8 +96,8 @@ Bruno stores variables during execution that are reused in subsequent requests:
 
 ### Retrieve Environment (200 OK)
 ✓ HTTP 200 response
-✓ Single environment details with all files
-✓ File information nested under `files` array
+✓ Single environment details with all metadata
+✓ `environment_file` and `dependency_list` fields present (S3 paths)
 
 ### Update Environment (200 OK)
 ✓ HTTP 200 response

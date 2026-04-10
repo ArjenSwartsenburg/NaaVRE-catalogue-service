@@ -24,7 +24,7 @@ tests {
       expect(jsonData).to.have.property('environment_name');
       expect(jsonData).to.have.property('python_version');
       expect(jsonData).to.have.property('package_count');
-      expect(jsonData).to.have.property('files');
-      expect(jsonData.files).to.be.an('array');
+      expect(jsonData).to.have.property('environment_file');
+      expect(jsonData).to.have.property('dependency_list');
   });
 }
