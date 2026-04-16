@@ -1,7 +1,7 @@
 meta {
-  name: Create conda environment
+  name: Create with files
   type: http
-  seq: 2
+  seq: 5
 }
 
 post {
@@ -17,20 +17,22 @@ auth:bearer {
 body:json {
   {
     "virtual_lab": "test-virtual-lab-1",
-    "title": "test-conda-env-1",
-    "description": "Test conda environment with numpy and pandas",
-    "environment_name": "test-analysis-env",
+    "title": "test-conda-env-with-files",
+    "description": "Test conda environment created with files",
+    "environment_name": "test-env-with-files",
     "python_version": "3.11.4",
     "package_count": 42,
-    "created_date": "2026-03-30T10:30:00Z"
+    "created_date": "2026-03-30T10:30:00Z",
+    "environment_file_key": "{{envTarKey}}",
+    "dependency_list_key": "{{requirementsKey}}"
   }
 }
 
 script:post-response {
   try {
     const uuid = res.getBody().url.replace(/.*\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/$/, "$1");
-    bru.setVar('condaEnvUUID', uuid);
-    console.log('Created conda environment with UUID:', uuid);
+    bru.setVar('condaEnvWithFilesUUID', uuid);
+    console.log('Created conda environment with files, UUID:', uuid);
   }
   catch (e) {
     console.log('Error extracting UUID:', e);
@@ -41,18 +43,15 @@ tests {
   test("Status code is 201", function () {
     expect(res.getStatus()).to.equal(201);
   });
-  test("JSON response is valid", function () {
+  test("JSON response includes file fields", function () {
     var jsonData = res.getBody();
     expect(jsonData).to.deep.include({
-      "title": "test-conda-env-1",
-      "owner": "test-user-2",
-      "virtual_lab": "test-virtual-lab-1",
-      "environment_name": "test-analysis-env",
+      "title": "test-conda-env-with-files",
+      "environment_name": "test-env-with-files",
       "python_version": "3.11.4",
       "package_count": 42
     });
-    expect(jsonData.url).is.not.null;
-    expect(jsonData.created).is.not.null;
-    expect(jsonData.modified).is.not.null;
+    expect(jsonData.environment_file).is.not.null;
+    expect(jsonData.dependency_list).is.not.null;
   });
 }

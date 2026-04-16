@@ -31,12 +31,12 @@ def key_does_not_exist_in_db_dependency(key):
 class CondaEnvironmentSerializer(BaseAssetSerializer):
     environment_file_key = serializers.CharField(
         write_only=True,
-        required=True,
+        required=False,
         validators=[key_exists_in_s3, key_does_not_exist_in_db_environment],
     )
     dependency_list_key = serializers.CharField(
         write_only=True,
-        required=True,
+        required=False,
         validators=[key_exists_in_s3, key_does_not_exist_in_db_dependency],
     )
 
@@ -64,13 +64,31 @@ class CondaEnvironmentSerializer(BaseAssetSerializer):
         ]
         read_only_fields = ['environment_file', 'dependency_list']
 
+    def validate(self, attrs):
+        environment_name = attrs.get('environment_name')
+        owner = self.context['request'].user
+        qs = models.CondaEnvironment.objects.filter(
+            environment_name=environment_name,
+            owner=owner,
+        )
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError({
+                'environment_name':
+                    'An environment with this name already exists for this owner.'
+            })
+        return attrs
+
     def create(self, validated_data):
-        environment_file_key = validated_data.pop('environment_file_key')
-        dependency_list_key = validated_data.pop('dependency_list_key')
+        environment_file_key = validated_data.pop('environment_file_key', None)
+        dependency_list_key = validated_data.pop('dependency_list_key', None)
 
         conda_env = models.CondaEnvironment(**validated_data)
-        conda_env.environment_file.name = environment_file_key
-        conda_env.dependency_list.name = dependency_list_key
+        if environment_file_key:
+            conda_env.environment_file.name = environment_file_key
+        if dependency_list_key:
+            conda_env.dependency_list.name = dependency_list_key
         conda_env.save()
         return conda_env
 
