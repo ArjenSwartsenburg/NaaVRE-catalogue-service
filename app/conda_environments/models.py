@@ -8,8 +8,8 @@ class CondaEnvironment(BaseAsset):
     python_version = models.CharField(max_length=50, blank=True)
     package_count = models.IntegerField(default=0)
     created_date = models.DateTimeField(null=True, blank=True)
-    environment_file = models.FileField(upload_to='conda_environments/', unique=True, null=True, blank=True)
-    dependency_list = models.FileField(upload_to='dependency_lists/', unique=True, null=True, blank=True)
+    environment_file = models.FileField(upload_to='conda_environments/', null=True, blank=True)
+    dependency_list = models.FileField(upload_to='dependency_lists/', null=True, blank=True)
 
     def __str__(self):
         return f'{self.title}-{self.owner.username}'

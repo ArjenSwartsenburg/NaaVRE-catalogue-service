@@ -12,32 +12,16 @@ def key_exists_in_s3(key):
             )
 
 
-def key_does_not_exist_in_db_environment(key):
-    qs = models.CondaEnvironment.objects.filter(environment_file=key)
-    if qs.exists():
-        raise serializers.ValidationError(
-            'a record with this key already exists in the database'
-            )
-
-
-def key_does_not_exist_in_db_dependency(key):
-    qs = models.CondaEnvironment.objects.filter(dependency_list=key)
-    if qs.exists():
-        raise serializers.ValidationError(
-            'a record with this key already exists in the database'
-            )
-
-
 class CondaEnvironmentSerializer(BaseAssetSerializer):
     environment_file_key = serializers.CharField(
         write_only=True,
         required=False,
-        validators=[key_exists_in_s3, key_does_not_exist_in_db_environment],
+        validators=[key_exists_in_s3],
     )
     dependency_list_key = serializers.CharField(
         write_only=True,
         required=False,
-        validators=[key_exists_in_s3, key_does_not_exist_in_db_dependency],
+        validators=[key_exists_in_s3],
     )
 
     class Meta(BaseAssetSerializer.Meta):
@@ -91,6 +75,19 @@ class CondaEnvironmentSerializer(BaseAssetSerializer):
             conda_env.dependency_list.name = dependency_list_key
         conda_env.save()
         return conda_env
+
+    def update(self, instance, validated_data):
+        environment_file_key = validated_data.pop('environment_file_key', None)
+        dependency_list_key = validated_data.pop('dependency_list_key', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        if environment_file_key:
+            instance.environment_file.name = environment_file_key
+        if dependency_list_key:
+            instance.dependency_list.name = dependency_list_key
+        instance.save()
+        return instance
 
 
 class PresignRequestSerializer(serializers.Serializer):
