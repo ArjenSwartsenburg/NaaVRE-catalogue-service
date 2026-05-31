@@ -35,6 +35,21 @@ class S3StorageService:
             )
         return key, url
 
+    def generate_presigned_download_url(self, key, expire=None):
+        if expire is None:
+            expire = self.storage.querystring_expire
+
+        url = self.storage.connection.meta.client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": self.storage.bucket.name,
+                "Key": key,
+                },
+            ExpiresIn=expire,
+            HttpMethod='GET',
+            )
+        return url
+
     def exists(self, key):
         return self.storage.exists(key)
 
