@@ -103,7 +103,7 @@ STORAGES = {
             "access_key": os.environ['S3_ACCESS_KEY'],
             "secret_key": os.environ['S3_SECRET_KEY'],
             "verify": os.getenv('VERIFY_SSL', 'true').lower() != 'false',
-            "querystring_expire": 600,
+            "querystring_expire": 86400,  # 24 hours
             "file_overwrite": False,
             },
         },
