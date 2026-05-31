@@ -59,3 +59,24 @@ class CondaEnvironmentViewSet(BaseAssetViewSet):
             "url": url,
         })
 
+    @action(methods=['get'], detail=True, url_path='download-url')
+    def download_url(self, request, pk=None):
+        """ Generate a presigned URL for direct download of the environment
+        file from S3.
+
+        Returns:
+            `url`: a presigned download URL, or null if no environment file
+                is associated with this object.
+        Return example:
+            {
+                "url": "http://localhost:9000/dev-bucket/conda_environments/..."
+            }
+        """
+        instance = self.get_object()
+        if not instance.environment_file or not instance.environment_file.name:
+            return Response({"url": None})
+        url = self.s3_service.generate_presigned_download_url(
+            instance.environment_file.name,
+            )
+        return Response({"url": url})
+
